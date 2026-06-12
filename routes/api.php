@@ -23,7 +23,7 @@ Route::prefix('v1')->group(function () {
         Route::put('artifacts/{artifact}', [ArtifactController::class, 'update']);
         Route::patch('artifacts/{artifact}/mark-done', [ArtifactController::class, 'markAsDone']);
         Route::get('artifacts/schema/{type}', [ArtifactController::class, 'getSchema']);
-        // Modules
+        // -- Modules
         Route::get('projects/{project}/modules', [ModuleController::class, 'index']);
         Route::post('projects/{project}/modules', [ModuleController::class, 'store']);
         Route::get('modules/{module}', [ModuleController::class, 'show']);
