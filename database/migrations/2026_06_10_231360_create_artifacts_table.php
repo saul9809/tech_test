@@ -15,13 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('project_id')->constrained()->onDelete('cascade');
             $table->enum('type', [
-                'strategic_alignment',
-                'big_picture',
-                'domain_breakdown',
-                'module_matrix',
-                'module_engineering',
-                'system_architecture',
-                'phase_scope',
+                'strategic_alignment', 'big_picture', 'domain_breakdown',
+                'module_matrix', 'module_engineering', 'system_architecture', 'phase_scope',
             ]);
             $table->enum('status', ['not_started', 'in_progress', 'blocked', 'done'])->default('not_started');
             $table->foreignId('owner_user_id')->nullable()->constrained('users');

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('domain');
             $table->string('name');
             $table->enum('status', ['draft', 'validated', 'ready_for_build'])->default('draft');
-            // -- 10 feelds require
+            // Campos requeridos por la especificación
             $table->text('objective')->nullable();
             $table->json('inputs')->nullable();
             $table->json('data_structure')->nullable();
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->text('responsibility')->nullable();
             $table->text('failure_scenarios')->nullable();
             $table->text('audit_trail_requirements')->nullable();
-            $table->json('dependencies')->nullable(); // array de module_ids
+            $table->json('dependencies')->nullable();
             $table->string('version_note')->nullable();
             $table->timestamps();
         });

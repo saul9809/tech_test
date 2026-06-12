@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('actor_user_id')->constrained('users');
             $table->string('entity_type'); // project, artifact, module
             $table->unsignedBigInteger('entity_id');
-            $table->string('action'); // created, updated, status_changed, validated, completed
+            $table->string('action');
             $table->json('before_json')->nullable();
             $table->json('after_json')->nullable();
             $table->timestamps();
