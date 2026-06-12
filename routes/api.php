@@ -17,7 +17,7 @@ Route::prefix('v1')->group(function () {
         // -- Projects
         Route::apiResource('projects', ProjectController::class);
         Route::patch('projects/{project}/archive', [ProjectController::class, 'archive']);
-        // -- Artifacts
+        // Artifacts
         Route::get('projects/{project}/artifacts', [ArtifactController::class, 'index']);
         Route::get('artifacts/{artifact}', [ArtifactController::class, 'show']);
         Route::put('artifacts/{artifact}', [ArtifactController::class, 'update']);
@@ -33,4 +33,5 @@ Route::prefix('v1')->group(function () {
     });
     // Audit
     Route::get('projects/{project}/audit', [AuditController::class, 'getProjectTimeline']);
+    Route::get('/users', [UserController::class, 'index']);
 });

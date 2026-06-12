@@ -8,17 +8,6 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
-
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         // Super Admin bypass
@@ -30,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
-        // Projects
+        // Projects - Todos pueden ver
         Gate::define('view-projects', function (User $user) {
             return in_array($user->role, ['admin', 'pm', 'engineer', 'viewer']);
         });
@@ -43,18 +32,31 @@ class AppServiceProvider extends ServiceProvider
             return $user->role === 'admin';
         });
 
-        // Artifacts
+        // -- Artifacts - Todos pueden ver, solo admin/pm pueden editar
+        Gate::define('view-artifacts', function (User $user) {
+            return in_array($user->role, ['admin', 'pm', 'engineer', 'viewer']);
+        });
+
         Gate::define('manage-artifacts', function (User $user) {
             return in_array($user->role, ['admin', 'pm']);
         });
 
-        // Modules
+        // -- CORREGIDO: Modules - Todos pueden VER, solo admin/pm/engineer pueden EDITAR
+        Gate::define('view-modules', function (User $user) {
+            return in_array($user->role, ['admin', 'pm', 'engineer', 'viewer']);
+        });
+
         Gate::define('edit-modules', function (User $user) {
             return in_array($user->role, ['admin', 'pm', 'engineer']);
         });
 
         Gate::define('validate-modules', function (User $user) {
             return in_array($user->role, ['admin', 'pm', 'engineer']);
+        });
+
+        // -- Agregar Gate para ver usuarios
+        Gate::define('view-users', function (User $user) {
+            return in_array($user->role, ['admin', 'pm']);
         });
     }
 }

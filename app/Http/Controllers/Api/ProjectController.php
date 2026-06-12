@@ -58,7 +58,7 @@ class ProjectController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
-            // Crear los 7 artifacts automáticamente
+            // ✅ IMPORTANTE: Crear los 7 artifacts automáticamente
             $this->createDefaultArtifacts($project);
 
             return $project;
@@ -88,8 +88,8 @@ class ProjectController extends Controller
             if (! $canChange['can']) {
                 return response()->json([
                     'success' => false,
-                    'message' => $canChange['reason'],
-                    'missing_artifacts' => $canChange['missing_artifacts'] ?? [],
+                    'message' => 'Faltan artifacts requeridos: '.implode(', ', $canChange['missing_artifacts']),
+                    'missing_artifacts' => $canChange['missing_artifacts'],
                 ], 422);
             }
         }
@@ -127,6 +127,9 @@ class ProjectController extends Controller
         ]);
     }
 
+    /**
+     * Crear los 7 artifacts por defecto para un proyecto
+     */
     private function createDefaultArtifacts(Project $project)
     {
         $artifactTypes = [
@@ -148,6 +151,9 @@ class ProjectController extends Controller
         }
     }
 
+    /**
+     * Obtener contenido por defecto para cada tipo de artifact
+     */
     private function getDefaultContentForType(string $type): array
     {
         $defaults = [
@@ -167,6 +173,9 @@ class ProjectController extends Controller
             ],
             'module_matrix' => [
                 'modules_overview' => [],
+            ],
+            'module_engineering' => [
+                'notes' => '',
             ],
             'system_architecture' => [
                 'auth_model' => '',

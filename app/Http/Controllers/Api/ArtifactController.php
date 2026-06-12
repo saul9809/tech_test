@@ -22,16 +22,13 @@ class ArtifactController extends Controller
         $this->auditService = $auditService;
     }
 
-    /**
-     * Listar artifacts de un proyecto
-     */
     public function index(Project $project)
     {
         Gate::authorize('view-projects');
 
         $artifacts = $project->artifacts()->with('owner')->get();
 
-        // Agregar información de bloqueo a cada artifact
+        // Agregar información de bloqueo
         $artifacts = $artifacts->map(function ($artifact) {
             $gateCheck = $this->artifactGateService->canMarkAsDone($artifact);
             $artifact->can_be_completed = $gateCheck['can'];
@@ -46,9 +43,6 @@ class ArtifactController extends Controller
         ]);
     }
 
-    /**
-     * Mostrar un artifact específico
-     */
     public function show(Artifact $artifact)
     {
         Gate::authorize('view-projects');
@@ -59,9 +53,6 @@ class ArtifactController extends Controller
         ]);
     }
 
-    /**
-     * Actualizar un artifact
-     */
     public function update(Request $request, Artifact $artifact)
     {
         Gate::authorize('manage-artifacts');
@@ -72,12 +63,10 @@ class ArtifactController extends Controller
             'status' => 'sometimes|in:not_started,in_progress,blocked,done',
         ]);
 
-        // Guardar estado anterior para auditoría
         $oldData = $artifact->toArray();
 
         $artifact->update($validated);
 
-        // Registrar auditoría
         $this->auditService->log(
             auth()->id(),
             'artifact',
@@ -94,38 +83,31 @@ class ArtifactController extends Controller
         ]);
     }
 
-    /**
-     * Marcar artifact como "done" con verificación de Gates
-     */
     public function markAsDone(Artifact $artifact)
     {
         Gate::authorize('manage-artifacts');
 
-        // Verificar reglas de negocio (Gates)
         $gateCheck = $this->artifactGateService->canMarkAsDone($artifact);
 
         if (! $gateCheck['can']) {
             return response()->json([
                 'success' => false,
-                'message' => 'No se puede marcar como completado',
-                'reason' => $gateCheck['reason'],
+                'message' => $gateCheck['reason'],
             ], 422);
         }
 
         $oldStatus = $artifact->status;
-        $oldCompletedAt = $artifact->completed_at;
 
         $artifact->status = 'done';
         $artifact->completed_at = now();
         $artifact->save();
 
-        // Registrar auditoría
         $this->auditService->log(
             auth()->id(),
             'artifact',
             $artifact->id,
             'completed',
-            ['status' => $oldStatus, 'completed_at' => $oldCompletedAt],
+            ['status' => $oldStatus],
             ['status' => 'done', 'completed_at' => $artifact->completed_at]
         );
 
@@ -136,9 +118,6 @@ class ArtifactController extends Controller
         ]);
     }
 
-    /**
-     * Obtener el contenido JSON específico para cada tipo de artifact
-     */
     public function getSchema(string $type)
     {
         Gate::authorize('view-projects');
@@ -160,6 +139,9 @@ class ArtifactController extends Controller
             ],
             'module_matrix' => [
                 'modules_overview' => 'array',
+            ],
+            'module_engineering' => [
+                'notes' => 'text',
             ],
             'system_architecture' => [
                 'auth_model' => 'text',

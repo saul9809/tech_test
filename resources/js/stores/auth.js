@@ -4,7 +4,7 @@ import axios from '../services/axios'
 const state = reactive({
     user: null,
     token: localStorage.getItem('token'),
-    isAuthenticated: !!localStorage.getItem('token'),
+    isAuthenticated: !!localStorage.getItem('token')
 })
 
 export const useAuthStore = () => {
@@ -22,7 +22,10 @@ export const useAuthStore = () => {
             
             return { success: true }
         } catch (error) {
-            return { success: false, message: error.response?.data?.message || 'Error de autenticación' }
+            return { 
+                success: false, 
+                message: error.response?.data?.message || 'Error de autenticación'
+            }
         }
     }
     
@@ -40,17 +43,16 @@ export const useAuthStore = () => {
         }
     }
     
-    const checkAuth = () => {
+    const checkAuth = async () => {
         if (state.token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${state.token}`
-            axios.get('/v1/user')
-                .then(response => {
-                    state.user = response.data
-                    state.isAuthenticated = true
-                })
-                .catch(() => {
-                    logout()
-                })
+            try {
+                const response = await axios.get('/v1/user')
+                state.user = response.data
+                state.isAuthenticated = true
+            } catch (error) {
+                logout()
+            }
         }
     }
     
@@ -66,6 +68,6 @@ export const useAuthStore = () => {
         login,
         logout,
         checkAuth,
-        hasRole,
+        hasRole
     }
 }

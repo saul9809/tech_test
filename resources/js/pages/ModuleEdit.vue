@@ -1,8 +1,8 @@
 <template>
     <div class="module-edit">
         <div class="page-header">
-            <h1>{{ moduleId ? 'Editar Módulo' : 'Nuevo Módulo' }}</h1>
-            <button @click="goBack" class="btn-secondary">Volver</button>
+            <h1>{{ isEdit ? 'Editar Módulo' : 'Nuevo Módulo' }}</h1>
+            <button @click="goBack" class="btn-secondary">Volver al Proyecto</button>
         </div>
         
         <div v-if="loading" class="loading">Cargando...</div>
@@ -28,9 +28,9 @@
                 <div class="form-group">
                     <label>Inputs * (al menos 1)</label>
                     <div class="array-field">
-                        <div v-for="(item, index) in form.inputs" :key="index" class="array-item">
-                            <input v-model="form.inputs[index]" class="array-input">
-                            <button type="button" @click="removeInput(index)" class="btn-icon">🗑️</button>
+                        <div v-for="(item, idx) in form.inputs" :key="idx" class="array-item">
+                            <input v-model="form.inputs[idx]" placeholder="Input">
+                            <button type="button" @click="removeInput(idx)" class="btn-icon">🗑️</button>
                         </div>
                         <button type="button" @click="addInput" class="btn-add">+ Agregar Input</button>
                     </div>
@@ -39,9 +39,9 @@
                 <div class="form-group">
                     <label>Outputs * (al menos 1)</label>
                     <div class="array-field">
-                        <div v-for="(item, index) in form.outputs" :key="index" class="array-item">
-                            <input v-model="form.outputs[index]" class="array-input">
-                            <button type="button" @click="removeOutput(index)" class="btn-icon">🗑️</button>
+                        <div v-for="(item, idx) in form.outputs" :key="idx" class="array-item">
+                            <input v-model="form.outputs[idx]" placeholder="Output">
+                            <button type="button" @click="removeOutput(idx)" class="btn-icon">🗑️</button>
                         </div>
                         <button type="button" @click="addOutput" class="btn-add">+ Agregar Output</button>
                     </div>
@@ -55,7 +55,7 @@
             
             <div class="form-group">
                 <label>Data Structure (JSON)</label>
-                <textarea v-model="dataStructureText" rows="4" class="textarea"></textarea>
+                <textarea v-model="dataStructureText" rows="4" class="textarea" placeholder='{"key": "value"}'></textarea>
             </div>
             
             <div class="form-group">
@@ -80,7 +80,7 @@
             
             <div class="form-group">
                 <label>Version Note</label>
-                <input v-model="form.version_note">
+                <input v-model="form.version_note" placeholder="v1.0.0">
             </div>
             
             <div class="form-actions">
@@ -100,8 +100,10 @@ import axios from '../services/axios'
 
 const route = useRoute()
 const router = useRouter()
+
 const projectId = route.params.id
 const moduleId = route.params.moduleId
+const isEdit = moduleId && moduleId !== 'new'
 
 const loading = ref(true)
 const saving = ref(false)
@@ -127,7 +129,7 @@ const dataStructureText = computed({
         try {
             form.data_structure = JSON.parse(value)
         } catch (e) {
-            // JSON inválido, mantener el valor anterior
+            // Mantener el valor anterior si JSON inválido
         }
     }
 })
@@ -135,7 +137,9 @@ const dataStructureText = computed({
 const dependenciesText = computed({
     get: () => form.dependencies.join(', '),
     set: (value) => {
-        form.dependencies = value.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+        form.dependencies = value.split(',')
+            .map(id => parseInt(id.trim()))
+            .filter(id => !isNaN(id))
     }
 })
 
@@ -156,16 +160,14 @@ const removeOutput = (index) => {
 }
 
 const fetchModule = async () => {
-    if (moduleId && moduleId !== 'new') {
-        try {
-            const response = await axios.get(`/v1/modules/${moduleId}`)
-            const module = response.data.data
-            Object.assign(form, module)
-            form.data_structure = module.data_structure || {}
-            form.dependencies = module.dependencies || []
-        } catch (err) {
-            console.error('Error fetching module:', err)
-        }
+    if (isEdit) {
+        const response = await axios.get(`/v1/modules/${moduleId}`)
+        const module = response.data.data
+        Object.assign(form, module)
+        form.data_structure = module.data_structure || {}
+        form.dependencies = module.dependencies || []
+        form.inputs = module.inputs || []
+        form.outputs = module.outputs || []
     }
     loading.value = false
 }
@@ -173,7 +175,7 @@ const fetchModule = async () => {
 const save = async () => {
     saving.value = true
     try {
-        if (moduleId && moduleId !== 'new') {
+        if (isEdit) {
             await axios.put(`/v1/modules/${moduleId}`, form)
         } else {
             await axios.post(`/v1/projects/${projectId}/modules`, form)
@@ -187,7 +189,8 @@ const save = async () => {
 }
 
 const goBack = () => {
-    router.push(`/projects/${projectId}`)
+    const tab = route.query.tab || 'modules' // Por defecto a modules
+    router.push(`/projects/${projectId}?tab=${tab}`)
 }
 
 onMounted(fetchModule)
@@ -198,56 +201,74 @@ onMounted(fetchModule)
     max-width: 900px;
     margin: 0 auto;
 }
+
 .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
 }
+
+.page-header h1 {
+    color: #2d3748;
+}
+
 .module-form {
     background: white;
     padding: 2rem;
     border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
 }
+
 .form-group {
     margin-bottom: 1.5rem;
 }
+
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
+    color: #4a5568;
 }
-.form-group input, .form-group select, .form-group textarea {
+
+.form-group input, .form-group textarea {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid #e2e8f0;
     border-radius: 0.25rem;
+    font-family: inherit;
 }
+
+.form-group textarea {
+    resize: vertical;
+}
+
 .textarea {
     font-family: monospace;
 }
+
 .array-field {
     border: 1px solid #e2e8f0;
     border-radius: 0.25rem;
-    padding: 0.5rem;
+    padding: 0.75rem;
 }
+
 .array-item {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 0.5rem;
 }
-.array-input {
+
+.array-item input {
     flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.25rem;
 }
+
 .btn-icon {
     padding: 0 0.5rem;
     background: #f56565;
@@ -256,6 +277,7 @@ onMounted(fetchModule)
     border-radius: 0.25rem;
     cursor: pointer;
 }
+
 .btn-add {
     margin-top: 0.5rem;
     padding: 0.25rem 0.5rem;
@@ -266,6 +288,7 @@ onMounted(fetchModule)
     cursor: pointer;
     font-size: 0.875rem;
 }
+
 .form-actions {
     display: flex;
     justify-content: flex-end;
@@ -274,20 +297,29 @@ onMounted(fetchModule)
     padding-top: 1rem;
     border-top: 1px solid #e2e8f0;
 }
+
 .btn-primary, .btn-secondary {
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 0.25rem;
     cursor: pointer;
+    font-size: 0.875rem;
 }
+
 .btn-primary {
     background: #667eea;
     color: white;
 }
+
+.btn-primary:hover:not(:disabled) {
+    background: #5a67d8;
+}
+
 .btn-secondary {
     background: #cbd5e0;
     color: #2d3748;
 }
+
 .loading {
     text-align: center;
     padding: 2rem;

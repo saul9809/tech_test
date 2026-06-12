@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('client_name');
-            $table->enum('status', ['draft', 'discovery', 'execution', 'delivered'])->default('draft');
+            $table->string('status')->default('draft');
             $table->foreignId('created_by')->constrained('users');
             $table->softDeletes();
             $table->timestamps();

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('project_id')->constrained()->onDelete('cascade');
             $table->string('domain');
             $table->string('name');
-            $table->enum('status', ['draft', 'validated', 'ready_for_build'])->default('draft');
+            $table->string('status')->default('draft');
             // Campos requeridos por la especificación
             $table->text('objective')->nullable();
             $table->json('inputs')->nullable();

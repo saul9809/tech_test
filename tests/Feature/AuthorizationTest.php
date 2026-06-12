@@ -24,39 +24,43 @@ class AuthorizationTest extends TestCase
 
         $this->actingAs($viewer);
 
-        // Try to update artifact
+        // Try to update artifact - Debe dar 403 (no puede editar)
         $response = $this->putJson("/api/v1/artifacts/{$artifact->id}", [
             'status' => 'in_progress',
         ]);
         $response->assertStatus(403);
 
-        // Try to update module
+        // Try to update module - Debe dar 403 (no puede editar)
         $response = $this->putJson("/api/v1/modules/{$module->id}", [
             'name' => 'New name',
         ]);
         $response->assertStatus(403);
 
-        // Try to validate module
+        // Try to validate module - Debe dar 403 (no puede validar)
         $response = $this->postJson("/api/v1/modules/{$module->id}/validate");
         $response->assertStatus(403);
 
-        // Try to create project
+        // Try to create project - Debe dar 403 (no puede crear)
         $response = $this->postJson('/api/v1/projects', [
             'name' => 'New Project',
             'client_name' => 'New Client',
         ]);
         $response->assertStatus(403);
 
-        // Viewer can view projects (should be allowed)
+        // Viewer CAN view projects - Debe dar 200 (solo lectura)
         $response = $this->getJson('/api/v1/projects');
         $response->assertStatus(200);
 
-        // Viewer can view artifacts (should be allowed)
+        // Viewer CAN view artifacts - Debe dar 200 (solo lectura)
         $response = $this->getJson("/api/v1/projects/{$project->id}/artifacts");
         $response->assertStatus(200);
 
-        // Viewer can view modules (should be allowed)
+        // Viewer CAN view modules - Debe dar 200 (solo lectura)
+        // NOTA: Si tu API da 403, cambia a 403 o ajusta el Gate
         $response = $this->getJson("/api/v1/projects/{$project->id}/modules");
-        $response->assertStatus(200);
+
+        // Si tu política permite ver módulos a viewers, debe ser 200
+        // Si no, ajusta según tu lógica
+        $response->assertStatus(200); // O 403 si no pueden ver
     }
 }

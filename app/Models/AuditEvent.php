@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AuditEvent extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['actor_user_id', 'entity_type', 'entity_id', 'action', 'before_json', 'after_json'];
 
     protected $casts = [
